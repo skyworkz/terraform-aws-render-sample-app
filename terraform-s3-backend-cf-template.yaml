@@ -1,0 +1,97 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Terraform S3 backend resources
+Parameters:
+  BucketName:
+    Type: String
+    Default: terraform-backend-state-poc-render
+    Description: The name of the bucket used to store Terraform state files
+  TableName:
+    Type: String
+    Default: terraform-backend-state-poc-render
+    Description: The name of the table used to lock Terraform state
+  Username:
+    Type: String
+    Default: terraform-poc-render-cli
+    Description: The username to be used to access S3 backend and deploy Terraform resources on AWS
+Resources:
+  S3Bucket:
+    Type: 'AWS::S3::Bucket'
+    DeletionPolicy: Delete
+    Properties:
+      BucketName: !Ref BucketName
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref S3Bucket
+      PolicyDocument:
+        Statement:
+          - Sid: Deny deletion of objects
+            Effect: Deny
+            Principal: "*"
+            Action:
+              - "s3:DeleteObject"
+            Resource: !Join [ '/', [ !GetAtt S3Bucket.Arn, '*' ] ]
+          - Sid: Deny requests that do not use TLS
+            Effect: Deny
+            Principal: '*'
+            Action:
+              - "s3:*"
+            Resource: !Join [ '/', [ !GetAtt S3Bucket.Arn, '*' ] ]
+            Condition:
+              Bool:
+                'aws:SecureTransport': 'false'
+          - Sid: Deny object uploads not using default encryption settings
+            Effect: Deny
+            Principal: '*'
+            Action:
+              - "s3:PutObject"
+            Resource: !Join [ '/', [ !GetAtt S3Bucket.Arn, '*' ] ]
+            Condition:
+              # The Null-condition allows uploads without encryption information in the request
+              # (i.e., requests with default S3 bucket encryption) and the
+              # StringNotEquals-condition denies uploads with invalid encryption information.
+              # Note that using StringNotEqualsIfExists doesn?t work for uploads without encryption information.
+              # The condition evaluates to true and denies the upload because of the Deny-effect.
+              'Null':
+                s3:x-amz-server-side-encryption: false
+              StringNotEqualsIfExists:
+                s3:x-amz-server-side-encryption:
+                  - 'AES256'
+                  - 'aws:kms'
+  DynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref TableName
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: LockID
+          AttributeType: S
+      KeySchema:
+        - AttributeName: LockID
+          KeyType: HASH
+      Tags:
+        # Cloudformation doesn't support automatically tagging of DynamoDB
+        - Key: aws-cloudformation-logical-id
+          Value: "DynamoDBTable"
+        - Key: aws-cloudformation-stack-id
+          Value: !Ref "AWS::StackId"
+        - Key: aws-cloudformation-stack-name
+          Value: !Ref "AWS::StackName"
+  TerraformUser:
+    Type: 'AWS::IAM::User'
+    Properties:
+      UserName: !Ref Username
+      Path: '/'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess
+
+Outputs:
+  TerraformUserOutput:
+    Value: !Ref TerraformUser
+    Description: The user created

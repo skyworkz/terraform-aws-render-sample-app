@@ -7,7 +7,7 @@ terraform {
 
     render = {
       source  = "jackall3n/render"
-      version = "1.1.1"
+      version = "1.2.0"
     }
   }
 }

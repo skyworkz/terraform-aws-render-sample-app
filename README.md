@@ -1,6 +1,6 @@
-# POC for Terraform + Render + AWS
+# Sample App using Terraform + Render + AWS
 
-This POC is intended to deploy resources to AWS and Render using Terraform
+This sample application is designed to be deployed on AWS and Render using Terraform
 
 ## S3 Backend configuration 
 

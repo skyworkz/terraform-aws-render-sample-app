@@ -51,7 +51,7 @@ resource "render_service_environment" "web_api_container" {
   variables = [{
     key   = "S3_BUCKET"
     value = aws_s3_bucket.app_bucket.bucket
-  }, {
+    }, {
     key   = "COGNITO_USER_PULL_ARN"
     value = aws_cognito_user_pool.app_user_pool.arn
   }]

@@ -37,27 +37,27 @@ jobs:
       - name: Terraform Plan
         id: tf-plan
         run: terraform plan -no-color
-        continue-on-error: true # Allow to display the errors on next step
-
-      - uses: actions/github-script@0.9.0
-        env:
-          PLAN: "terraform\n${{ steps.tf-plan.outputs.stdout }}"
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const output = `#### Terraform Format and Style 🖌\`${{ steps.tf-fmt.outcome }}\`
-            #### Terraform Initialization ⚙️\`${{ steps.tf-init.outcome }}\`
-            #### Terraform Plan 📖\`${{ steps.tf-plan.outcome }}\`
-            <details><summary>Show Plan</summary>
-            <pre><code>${process.env.PLAN}</code></pre>
-            </details>
-            Pusher: @${{ github.actor }}, Action: ${{ github.event_name }}`;
-            github.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: output
-            })
+#        continue-on-error: true # Allow to display the errors on next step
+#
+#      - uses: actions/github-script@0.9.0
+#        env:
+#          PLAN: "terraform\n${{ steps.tf-plan.outputs.stdout }}"
+#        with:
+#          github-token: ${{ secrets.GITHUB_TOKEN }}
+#          script: |
+#            const output = `#### Terraform Format and Style 🖌\`${{ steps.tf-fmt.outcome }}\`
+#            #### Terraform Initialization ⚙️\`${{ steps.tf-init.outcome }}\`
+#            #### Terraform Plan 📖\`${{ steps.tf-plan.outcome }}\`
+#            <details><summary>Show Plan</summary>
+#            <pre><code>${process.env.PLAN}</code></pre>
+#            </details>
+#            Pusher: @${{ github.actor }}, Action: ${{ github.event_name }}`;
+#            github.issues.createComment({
+#              issue_number: context.issue.number,
+#              owner: context.repo.owner,
+#              repo: context.repo.repo,
+#              body: output
+#            })
       - name: Terraform Plan Status
         if: steps.tf-plan.outcome == 'failure'
         run: exit 1

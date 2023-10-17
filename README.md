@@ -8,6 +8,11 @@ Terraform works better with a remote backend and S3 is a common option. https://
 
 The Cloudformation template file [terraform-s3-backend-cf-template.yaml](./terraform-s3-backend-cf-template.yaml) has all the resources needed to deploy a basic functional S3 backend.
 
+Default region => Ireland (choose as you wish)
+
+```shell
+export AWS_DEFAULT_REGION=eu-west-1
+```
 
 The template can be deployed with the following command
 ```shell
@@ -32,4 +37,25 @@ Don't forget to store your credentials
 
 ```shell
 echo $TF_CREDENTIALS
+```
+
+
+# Usage
+
+## Required variables
+
+```shell
+export AWS_DEFAULT_REGION=eu-west-1
+export AWS_ACCESS_KEY_ID=*****
+export AWS_SECRET_ACCESS_KEY=*****
+export RENDER_API_KEY=*****
+export RENDER_EMAIL=*****
+```
+
+## Terraform
+
+```shell
+terraform init
+terraform plan
+terraform apply
 ```
